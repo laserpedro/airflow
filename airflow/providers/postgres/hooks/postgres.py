@@ -185,12 +185,13 @@ class PostgresHook(DbApiHook):
     def _generate_insert_sql(table, values, target_fields, replace, **kwargs):
         """
         Static helper method that generate the INSERT SQL statement.
-        The REPLACE variant is specific to MySQL syntax.
+        Since the The REPLACE variant is specific to MySQL syntax, the below
+        is an adpatation to the postre syntax
 
         :param table: Name of the target table
         :type table: str
         :param values: The row to insert into the table
-        :type values: tuple of cell values
+        :type values: list or tuple of values to insert
         :param target_fields: The names of the columns to fill in the table
         :type target_fields: iterable of strings
         :param replace: Whether to replace instead of insert
@@ -234,3 +235,10 @@ class PostgresHook(DbApiHook):
                 ", ".join(replace_target),
             )
         return sql
+    
+    def insert_df(df, target_table, source_cols, target_cols, target_fields, replace, **kwargs):
+        """
+        Insert a pandas dataframe into the target table
+        """
+        pass
+        
