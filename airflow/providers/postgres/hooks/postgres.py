@@ -156,7 +156,7 @@ class PostgresHook(DbApiHook):
         if isinstance(cell, datetime):
             return cell.isoformat()
   
-        return str(row)
+        return str(cell)
             
     def get_iam_token(self, conn):
         """
@@ -245,7 +245,7 @@ class PostgresHook(DbApiHook):
             )
         return sql
     
-    def insert_df(df, table, source_cols, index=False, target_fields=None,
+    def insert_df(self, df, table, source_cols=None, index=False, target_fields=None,
                   replace=False, replace_index=None, commit_every=1000, **kwargs):
         """
         Function to directly insert a dataframe into the target table
@@ -268,7 +268,10 @@ class PostgresHook(DbApiHook):
         """
   
         rows = []
-        df = df.loc[:, source_cols]
+        if source_cols:
+            _df = df.loc[:, source_cols]
+        else:
+            _df = df.copy()
     
         for row in df.itertuples():
             rows.append(tuple(row)[1:])
