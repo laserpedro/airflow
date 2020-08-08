@@ -23,6 +23,8 @@ import psycopg2
 import psycopg2.extensions
 import psycopg2.extras
 
+import pandas as pd
+
 from airflow.hooks.dbapi_hook import DbApiHook
 
 
@@ -136,7 +138,7 @@ class PostgresHook(DbApiHook):
         """
         Postgresql will adapt all arguments to the execute() method internally,
         hence we return cell without any conversion.
-
+    
         See http://initd.org/psycopg/docs/advanced.html#adapting-new-types for
         more information.
 
@@ -147,8 +149,15 @@ class PostgresHook(DbApiHook):
         :return: The cell
         :rtype: object
         """
-        return cell
+ 
+        if cell is None or pd.isnull(cell):
+            return None
 
+        if isinstance(cell, datetime):
+            return cell.isoformat()
+  
+        return str(row)
+            
     def get_iam_token(self, conn):
         """
         Uses AWSHook to retrieve a temporary password to connect to Postgres
@@ -236,9 +245,30 @@ class PostgresHook(DbApiHook):
             )
         return sql
     
-    def insert_df(df, target_table, source_cols, target_cols, target_fields, replace, **kwargs):
+    def insert_df(df, target_table, source_cols, index=False, target_fields=None,
+                  replace=False, replace_index=None, commit_every=1000, **kwargs):
         """
-        Insert a pandas dataframe into the target table
+        Function to directly insert a dataframe into the target table
+
+        :param df: dataframe to insert
+        :type df: pd.DataFrame
+        :param source_cols:
+        :type source_cols: list
+        :param index:
+        :type index: Bool
+        :param target_fields:
+        :type target_fields:
+        :param replace:
+        :type replace: Bool
+        :param replace_index:
+        :type replace_index: list
         """
-        pass
-        
+  
+        rows = []
+        df = df.loc[:, source_cols]
+    
+        for row in df.itertuples():
+            rows.append(tuple(row)[1:])
+    
+        self.insert_rows(table, rows, target_fields, commit_every=commit_every,
+                         replace=replace, replace_index=replace_index)
