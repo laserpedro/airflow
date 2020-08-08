@@ -245,13 +245,16 @@ class PostgresHook(DbApiHook):
             )
         return sql
     
-    def insert_df(df, target_table, source_cols, index=False, target_fields=None,
+    def insert_df(df, table, source_cols, index=False, target_fields=None,
                   replace=False, replace_index=None, commit_every=1000, **kwargs):
         """
         Function to directly insert a dataframe into the target table
 
         :param df: dataframe to insert
         :type df: pd.DataFrame
+        :param table: name of the db table
+            Add the prefix 'schema_name.' if inserting into a schema
+        :type table: str
         :param source_cols:
         :type source_cols: list
         :param index:
