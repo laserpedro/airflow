@@ -257,7 +257,7 @@ class PostgresHook(DbApiHook):
         :type table: str
         :param source_cols:
         :type source_cols: list
-        :param index:
+        :param index: if True will insert the index vals
         :type index: Bool
         :param target_fields:
         :type target_fields:
@@ -268,13 +268,27 @@ class PostgresHook(DbApiHook):
         """
   
         rows = []
+
         if source_cols:
-            _df = df.loc[:, source_cols]
+            _df = df.loc[:, source_cols].copy()
         else:
             _df = df.copy()
+ 
+        if isinstance(_df.index[0], tuple):
+            idx_len = len(_df.index[0])
+        else:
+            idx_len = 1
+
+        for row in _df.itertuples():
+            if index:
+                idx_val = row[0]
+                if isinstance(idx_val, tuple):
+                    flat_row = row[0] + row[1:]
+                else:
+                    flat_row = row
+                rows.append(flat_row)
+            else:
+                rows.append(row[idx_len:])
     
-        for row in df.itertuples():
-            rows.append(tuple(row)[1:])
-    
-        self.insert_rows(table, rows, target_fields, commit_every=commit_every,
+        return self.insert_rows(table, rows, target_fields, commit_every=commit_every,
                          replace=replace, replace_index=replace_index)
