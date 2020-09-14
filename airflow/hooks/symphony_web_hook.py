@@ -34,16 +34,22 @@ class SymphonyWebHook(HttpHook):
         self.symph_type = symph_type
         self.symph_version = symph_version
 
-    def _get_token(self, token, http_conn_id):
+    def _get_token(self, http_conn_id, token=None):
 
         if token:
             return token
+
         elif http_conn_id:
             conn = self.get_connection(http_conn_id)
             extra = conn.extra_dejson
-            return extra.get('webhook_token', '')
+
+            try:
+                return extra['webhook_token']
+            except KeyError:
+                raise AirflowException('You indicated to use the webhook in the '
+                                       'connection extras but passed none')
         else:
-            raise AirflowException('Cannot get token: no Valid Symphony '
+            raise AirflowException('Cannot get token: no Symphony '
                                    'webhook token nor conn_id provided')
 
     @property
