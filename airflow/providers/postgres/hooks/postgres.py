@@ -150,14 +150,17 @@ class PostgresHook(DbApiHook):
         :rtype: object
         """
  
-        if cell is None or pd.isnull(cell):
+        @staticmethod
+        def _serialize_cell(cell, conn):
+
+        if pd.isnull(cell):
             return None
 
         if isinstance(cell, datetime):
             return cell.isoformat()
   
         return str(cell)
-            
+
     def get_iam_token(self, conn):
         """
         Uses AWSHook to retrieve a temporary password to connect to Postgres
