@@ -15,14 +15,4 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-"""This module is deprecated. Please use `airflow.providers.postgres.hooks.postgres`."""
-
-import warnings
-
-# pylint: disable=unused-import
-from airflow.providers.symphony.hooks.symphony_webhook import SymphonyWebHook  # noqa
-
-warnings.warn(
-    "This module is deprecated. Please use `airflow.providers.symphony.hooks.symphony_webhook`.",
-    DeprecationWarning, stacklevel=2
-)
+#
