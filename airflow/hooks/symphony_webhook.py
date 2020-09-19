@@ -1,5 +1,21 @@
-# author: pnouhaud
-# Created on 2020-09-14
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
 
 
 from datetime import datetime
@@ -15,10 +31,10 @@ class SymphonyWebHook(HttpHook):
     """
     This hooks allow you to post message to Symphony using webhooks.
     Takes both the Symphony webhook or a conn id. If the http conn id is provided then
-    the hook will use the webhook token in the extra. You can pass the token to the chat room
-    directly either.
+    the hook will use the webhook token provided in the extra.
+    You can pass the token of the chat room directly either.
 
-    :param http_conn_id: connection that has the Symphony web hook on its extra field
+    :param http_conn_id: connection that has the Symphony webhook on its extra field
     :type hhtp_conn_id: str
     :param webhook_token: Symphony webhook token
     :type webhook_token: str
@@ -48,9 +64,9 @@ class SymphonyWebHook(HttpHook):
     def _get_token(self, http_conn_id, token=None):
         """
         Return either the complete route to the chat room if provided or
-        search for the webhook token stored in the extra dict of the connection.
+        search for the webhook token stored in the extra of the connection.
 
-        :param http_conn_id: connection that has the Symphony web hook on its extra field
+        :param http_conn_id: connection that has the Symphony webhook on its extra field
         :type http_conn_id: str
         :param token: token to the Symphony chat room
         :type token: str

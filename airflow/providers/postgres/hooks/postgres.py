@@ -269,6 +269,10 @@ class PostgresHook(DbApiHook):
         :param replace_index:
         :type replace_index: list
         """
+
+        if len(df) == 0:
+            self.log.info('Done inserting 0 rows')
+            return
   
         rows = []
 
