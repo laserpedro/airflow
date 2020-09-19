@@ -194,7 +194,7 @@ class PostgresHook(DbApiHook):
         return login, token, port
 
     @staticmethod
-    def _generate_insert_sql(table, values, target_fields, replace, **kwargs):
+    def _generate_insert_sql(table, values, target_fields, replace, autoincrement_sequence=False, **kwargs):
         """
         Static helper method that generate the INSERT SQL statement.
         Since the The REPLACE variant is specific to MySQL syntax, the below
@@ -211,11 +211,15 @@ class PostgresHook(DbApiHook):
         :param replace_index: the column or list of column names to act as
             index for the ON CONFLICT clause
         :type replace_index: str or list
+        :param autoincrement_sequence: default False, if True will automatically autoincrement the sequence passed
+        :type autoincrement_sequence: bool
         :return: The generated INSERT or REPLACE SQL statement
         :rtype: str
         """
+
         placeholders = ["%s", ] * len(values)
         replace_index = kwargs.get("replace_index", None)
+        sequence = kwargs.get('sequence', None)
 
         if target_fields:
             target_fields_fragment = ", ".join(target_fields)
@@ -223,10 +227,19 @@ class PostgresHook(DbApiHook):
         else:
             target_fields_fragment = ''
 
-        sql = "INSERT INTO {0} {1} VALUES ({2})".format(
-            table,
-            target_fields_fragment,
-            ",".join(placeholders))
+        if autoincrement_sequence:
+            if sequence is None:
+                raise ValueError('Requires a sequence name if autoincrement_sequence is True')
+            sql = "INSERT INTO {0} {1} VALUES (nextval('{2}'), {3})".format(
+                table,
+                target_fields_fragment,
+                sequence,
+                ",".join(placeholders))
+        else:
+            sql = "INSERT INTO {0} {1} VALUES ({2})".format(
+                table,
+                target_fields_fragment,
+                ",".join(placeholders))
 
         if replace:
             if target_fields is None:
@@ -248,25 +261,33 @@ class PostgresHook(DbApiHook):
             )
         return sql
     
-    def insert_df(self, df, table, source_cols=None, index=False, target_fields=None,
-                  replace=False, replace_index=None, commit_every=1000, **kwargs):
+    def insert_df(self,
+                  df,
+                  table,
+                  source_cols=None,
+                  index=False,
+                  target_fields=None,
+                  replace=False,
+                  replace_index=None,
+                  autoincrement_sequence=False,
+                  sequence=None,
+                  commit_every=1000, **kwargs):
         """
-        Function to directly insert a dataframe into the target table
+        Insert a dataframe into a table
 
         :param df: dataframe to insert
         :type df: pd.DataFrame
-        :param table: name of the db table
-            Add the prefix 'schema_name.' if inserting into a schema
+        :param table: name of the database table
         :type table: str
-        :param source_cols:
-        :type source_cols: list
-        :param index: if True will insert the index vals
-        :type index: Bool
-        :param target_fields:
-        :type target_fields:
-        :param replace:
-        :type replace: Bool
-        :param replace_index:
+        :param source_cols: column(s) of the dataframe to insert
+        :type source_cols: list or str
+        :param index: default False, if True will insert the index vals
+        :type index: bool
+        :param target_fields: name of the target columns in the database table
+        :type target_fields: list
+        :param replace: whether or not to update the existing lines for the primary key set
+        :type replace: bool
+        :param replace_index: name of the columns that make the primary key
         :type replace_index: list
         """
 
@@ -277,16 +298,16 @@ class PostgresHook(DbApiHook):
         rows = []
 
         if source_cols:
-            _df = df.loc[:, source_cols].copy()
+            df = df.loc[:, source_cols].copy()
         else:
-            _df = df.copy()
+            df = df.copy()
  
         if isinstance(_df.index[0], tuple):
-            idx_len = len(_df.index[0])
+            idx_len = len(df.index[0])
         else:
             idx_len = 1
 
-        for row in _df.itertuples():
+        for row in df.itertuples():
             if index:
                 idx_val = row[0]
                 if isinstance(idx_val, tuple):
