@@ -55,7 +55,7 @@ class SFTPHook(SSHHook):
         self.private_key_pass = None
 
         # Fail for unverified hosts, unless this is explicitly allowed
-        self.no_host_key_check = False
+        self.no_host_key_check = True
 
         if self.ssh_conn_id is not None:
             conn = self.get_connection(self.ssh_conn_id)
